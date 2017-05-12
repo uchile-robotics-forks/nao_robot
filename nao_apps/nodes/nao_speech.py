@@ -362,14 +362,14 @@ class NaoSpeech(ALModule, NaoqiNode):
             rospy.logwarn("Speech recognition already started. Restarting.")
             self.srw.close()
         # Start only if vocabulary is valid
-        if Util.parse_vocabulary( self.conf["vocabulary"] ):
+        else:
             self.srw = SpeechRecognitionWrapper(
                 self.pip,
                 self.pport,
                 self.pub,
                 self.conf )
-        else:
-            rospy.logwarn("Empty vocabulary. Ignoring request.")
+        # else:
+        #     rospy.logwarn("Empty vocabulary. Ignoring request.")
 
         return EmptyResponse()
 
@@ -452,9 +452,10 @@ class SpeechRecognitionWrapper(ALModule):
         self.proxy.setLanguage( config["language"] )
         self.proxy.setAudioExpression( config["audio_expression"] )
         self.proxy.setVisualExpression( config["visual_expression"] )
-        self.proxy.setVocabulary(
-            Util.parse_vocabulary( config["vocabulary"].encode('utf-8') ),
-            config["word_spotting"] )
+        self.proxy.addContext("/home/nao/pepper.lcf","test1")
+        # self.proxy.setVocabulary(
+        #     Util.parse_vocabulary( config["vocabulary"].encode('utf-8') ),
+        #     config["word_spotting"] )
 
 
     def stop(self, module = None):
