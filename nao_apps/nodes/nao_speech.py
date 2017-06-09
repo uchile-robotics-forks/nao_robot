@@ -452,7 +452,8 @@ class SpeechRecognitionWrapper(ALModule):
         self.proxy.setLanguage( config["language"] )
         self.proxy.setAudioExpression( config["audio_expression"] )
         self.proxy.setVisualExpression( config["visual_expression"] )
-        #self.proxy.addContext("/home/nao/pepper.lcf","test1")
+        self.proxy.removeAllContext()
+        self.proxy.addContext("/home/nao/gpsr.lcf","gpsrii")
         # self.proxy.setVocabulary(
         #     Util.parse_vocabulary( config["vocabulary"].encode('utf-8') ),
         #     config["word_spotting"] )
