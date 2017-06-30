@@ -261,6 +261,7 @@ class NaoSpeech(ALModule, NaoqiNode):
         newConf["audio_expression"] = request["audio_expression"]
         newConf["visual_expression"] = request["visual_expression"]
         newConf["word_spotting"] = request["word_spotting"]
+        newConf["grammar"] = request["grammar"];
 
         # Check and update values
         if not newConf["voice"]:
@@ -292,13 +293,19 @@ class NaoSpeech(ALModule, NaoqiNode):
             rospy.logwarn("Empty vocabulary. Using current vocabulary instead")
             newConf["vocabulary"] = self.conf["vocabulary"]
 
+        # Adding new param Context
+
+        if not newConf["grammar"]:
+            newConf["grammar"] = ""
+
         # Check if we need to restart srw
         if self.srw and self.conf and (
             newConf["language"] != self.conf["language"] or
             newConf["vocabulary"] != self.conf["language"] or
             newConf["audio_expression"] != self.conf["audio_expression"] or
             newConf["visual_expression"] != self.conf["visual_expression"] or
-            newConf["word_spotting"] != self.conf["word_spotting"] ):
+            newConf["word_spotting"] != self.conf["word_spotting"] or
+            newConf["grammar"] != self.conf["grammar"]): ##adding grammar
             need_to_restart_speech = True
         else:
             need_to_restart_speech = False
@@ -423,6 +430,10 @@ class SpeechRecognitionWrapper(ALModule):
         #Install global variables needed by Naoqi
         self.install_naoqi_globals()
 
+        ##
+        self.grammar = None
+        ##
+
         #Check no one else is subscribed to this event
         subscribers = self.memory.getSubscribers(Constants.EVENT)
         if subscribers:
@@ -452,12 +463,24 @@ class SpeechRecognitionWrapper(ALModule):
         self.proxy.setLanguage( config["language"] )
         self.proxy.setAudioExpression( config["audio_expression"] )
         self.proxy.setVisualExpression( config["visual_expression"] )
-        self.proxy.removeAllContext()
-        self.proxy.addContext("/home/nao/gpsr.lcf","gpsrii")
-        # self.proxy.setVocabulary(
-        #     Util.parse_vocabulary( config["vocabulary"].encode('utf-8') ),
-        #     config["word_spotting"] )
+        
+        ####
+        if config["grammar"] != "":
+            self.proxy.removeAllContext()
+            context = "/home/nao/grammar/" + config["grammar"] + ".lcf"
+            self.proxy.addContext(context,"context")
+            self.grammar = config["grammar"]
+        
+        elif self.grammar == config["grammar"]:
+            pass
+        
+        else:
 
+            self.proxy.setVocabulary(
+                Util.parse_vocabulary( config["vocabulary"].encode('utf-8') ),
+                config["word_spotting"] )
+            self.grammar = None
+        ####
 
     def stop(self, module = None):
         if module is None:
